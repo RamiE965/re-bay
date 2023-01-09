@@ -1,0 +1,119 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %} {{ Listing.title }} {% endblock %}
+
+{% block body %}
+    <h1>{{ Listing.title }}</h1>
+
+    {% if ended %}
+        <div>
+            <h5><b>This auction has closed</b></h5>
+        </div>
+    {% endif %}
+    
+    <div style="width: 50%;">
+        {% if Listing.image %}
+            <img src="{{ Listing.image }}" class="img-fluid img-thumbnail" id="max_image_size">
+        {% endif %}
+    </div>
+    <hr>
+
+    <h6> {{ Listing.description }} </h6>
+
+    {% if request.user.is_authenticated %}
+        <div>
+            <form method="POST" action="{% url 'listing_watch' Listing.id %}">
+                {% csrf_token%}
+                {% if Listing in request.user.watchlist.all %}
+                    <input type="submit" value="Remove from Watchlist" />
+                {% else %}
+                    <input type="submit" value="Add to Watchlist" />
+                {% endif %}
+            </form>
+        </div>
+    {% endif %}
+
+    <div>
+        <h3>
+            $
+            {% if Listing.bids.all.count > 0 %}
+                {{ Listing.bids.first.biddingPrice }}
+            {% else %}
+                {{ Listing.startingBid }}
+            {% endif %}
+        </h3>
+    </div>
+
+
+    Number of bids: {{ Listing.bids.all.count }}.
+    {% if Listing.bids.first.user == request.user %}
+        {% if not ended %}
+            Your bid is the current bid.
+        {% else %}
+            <b>You are the winner of this auction!</b>
+        {% endif %}
+    {% endif %}
+
+    {% if request.user.is_authenticated and not ended %}
+        <form method="POST" action="{% url 'listing_bid' Listing.id %}">
+            {% csrf_token %}
+            <div>
+                {{ bidForm.biddingPrice }}
+                <input type="submit" value="Place Bid"/>
+            </div>
+        </form>
+    {% endif %}
+
+    <h3>About</h3>
+    <ul>
+        <li>Listed by <b>{{ Listing.username }}</b></li>
+        <li>
+            Category:
+            <a href="">
+                {{ Listing.category}}
+            </a>
+        </li>
+    </ul>
+
+    {% if request.user == Listing.username and not ended %}
+        <form method="POST" action="{% url 'listing_close' Listing.id %}">
+            {% csrf_token %}
+            <input class="btn btn-danger" type="submit" value="End Auction Early" />
+        </form>
+    {% endif %}
+
+    <hr>
+
+    <div id="comments-section" class="bg-light">
+        <h3>Comments</h3>
+        {% if request.user.is_authenticated and not ended %}
+            <form method="POST" action = "{% url 'listing_comment' Listing.id %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ commentForm.message }}
+                    <div>
+                        <input type="submit" value="Comment">
+                    </div>
+                </div>
+            </form>
+        {% elif not ended %}
+        <h5>You need to be logged in to comment!</h5>
+        {% endif %}
+        <div>
+        {%if Listing.comments.all %}
+            {% for comment in Listing.comments.all %}
+                <div class="card p-1 m-2 col-lg-12 col-sm-12"></divclass>
+                    <h5  class="card-title">{{ comment.username }}: </h5>
+                    <h6 class="card-subtitle mb-2">{{ comment.time }}</h6>
+                    {{ comment.message }}
+                </div>
+            {% endfor %}
+        {% else %}
+        <div>
+            <h5>There are no comments!</h5>
+        </div>
+        {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

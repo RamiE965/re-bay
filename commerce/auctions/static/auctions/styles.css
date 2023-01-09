@@ -1,0 +1,15 @@
+body {
+    padding: 10px;
+}
+
+.card-img-top {
+    width: 100%;
+    height: 15vw;
+    object-fit: cover;
+}
+
+.max_image_size{
+    max-width: 50%;
+    max-height: 60%;
+}
+
